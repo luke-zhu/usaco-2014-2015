@@ -1,0 +1,119 @@
+Problem 1: Overplanting (Silver) [Brian Dean, 2012]
+
+Farmer John has purchased a new machine that is capable of planting grass
+within any rectangular region of his farm that is "axially aligned" (i.e.,
+with vertical and horizontal sides).  Unfortunately, the machine
+malfunctions one day and plants grass in not one, but N (1 <= N <= 1000)
+different rectangular regions, some of which may even overlap.
+
+Given the rectangular regions planted with grass, please help FJ compute
+the total area in his farm that is now covered with grass.
+
+PROBLEM NAME: planting
+
+INPUT FORMAT:
+
+* Line 1: The integer N.
+
+* Lines 2..1+N: Each line contains four space-separated integers x1 y1
+        x2 y2 specifying a rectangular region with upper-left corner
+        (x1,y1) and lower-right corner (x2,y2).  All coordinates are
+        in the range -10^8...10^8.
+
+SAMPLE INPUT (file planting.in):
+
+2
+0 5 4 1
+2 4 6 2
+
+OUTPUT FORMAT:
+
+* Line 1: The total area covered by grass.  Note that this could be
+        too large to fit into a 32-bit integer.
+
+SAMPLE OUTPUT (file planting.out):
+
+20
+
+Solution Notes: The simplest way to solve this problem is with a "sweep line" approach. First, sort all the y coordinates in the scene (2N of them) and use them to divide space up into horizontal slices. We store in an array the height of each slice as well as an "overlap count" for each one (described shortly). We then sort all the x coordinates in the scene (2N of them) and sweep across the plane from left to right. Any time we hit the leading vertical edge of a rectangle, we increment the overlap counts of all the slices covered by that rectangle, and any time we hit the trailing vertical edge of a rectangle, we decrement the overlap counts of all its slices. We therefore maintain, during our sweep, the current number of "active" rectangles within each slice. To compute the total area, we simply add up the area swept across consisting of slices having positive overlap counts. The total running time is O(N^2), although it can be reduced even further to O(N log N) using a fancier data structure to encode the array of overlap counts.
+
+Note that this problem was very similar to the "Shaping Regions" problem on the training pages (a good incentive to study the training pages, since you may often find problems quite similar to those appeacing on contests!) For further information on the solution to this problem, you are encouraged to consult the analysis on the training pages.
+
+
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <vector>
+#include <utility>
+
+using namespace std;
+
+const int MAXN = 1111;
+
+int N, x1[MAXN], y1[MAXN], x2[MAXN], y2[MAXN], all_x[2 * MAXN];
+
+int main()
+{
+	FILE * w = fopen("planting.in", "r");
+	FILE * o = fopen("planting.out", "w");
+
+	fscanf(w, "%d", &N);
+	for(int i = 0; i < N; i++)
+	{
+		fscanf(w, "%d %d %d %d", &x1[i], &y1[i], &x2[i], &y2[i]);
+		all_x[2 * i] = x1[i];
+		all_x[2 * i + 1] = x2[i];
+	}
+	sort(all_x, all_x + 2 * N);
+
+	// sweep the x-coordinates
+	long long answer = 0;
+	for(int i = 0; i < 2 * N; )
+	{
+		int x = all_x[i];
+		if(i != 0 && x == all_x[i - 1])
+		{
+			i++;
+			continue;
+		}
+		vector<pair<int, int> > y;
+		// look for relevant rectangles
+		for(int j = 0; j < N; j++)
+			if(x1[j] <= x && x2[j] > x)
+			{
+				y.push_back(make_pair(y2[j], 1));
+				y.push_back(make_pair(y1[j], -1));
+			}
+		if(y.size() == 0)
+		{
+			i++;
+			continue;
+		}
+		// sweep
+		sort(y.begin(), y.end());
+		long long cur_area = 0;
+		int num_rectangles = 0, pos = 0;
+		while(pos < y.size())
+		{
+			int bottom_y = y[pos].first;
+			num_rectangles += y[pos].second; // num_rectangles == 1
+			while(num_rectangles > 0)
+				num_rectangles += y[++pos].second;
+			int top_y = y[pos].first;
+			cur_area += top_y - bottom_y;
+			pos++;
+		}
+		// find the next x-coordinate
+		int j = i + 1;
+		while(all_x[j] == all_x[i])
+			j++;
+		answer += cur_area * (all_x[j] - x);
+		i = j;
+	}
+
+	fprintf(o, "%lld\n", answer);
+	printf("%lld\n", answer);
+
+	return 0;
+}

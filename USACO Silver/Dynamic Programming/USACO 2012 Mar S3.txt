@@ -1,0 +1,95 @@
+Problem 3: Landscaping [Brian Dean, 2012]
+
+Farmer John is building a nicely-landscaped garden, and needs to move a
+large amount of dirt in the process.
+
+The garden consists of a sequence of N flowerbeds (1 <= N <= 100), where
+flowerbed i initially contains A_i units of dirt.  Farmer John would like
+to re-landscape the garden so that each flowerbed i instead contains B_i
+units of dirt.  The A_i's and B_i's are all integers in the range 0..10.
+
+To landscape the garden, Farmer John has several options: he can purchase
+one unit of dirt and place it in a flowerbed of his choice for $X.  He can
+remove one unit of dirt from a flowerbed of his choice and have it shipped
+away for $Y.  He can also transport one unit of dirt from flowerbed i to
+flowerbed j at a cost of $Z times |i-j|.  Please compute the minimum total
+cost for Farmer John to complete his landscaping project.
+
+PROBLEM NAME: landscape
+
+INPUT FORMAT:
+
+* Line 1: Space-separated integers N, X, Y, and Z (0 <= X, Y, Z <=
+        1000).
+
+* Lines 2..1+N: Line i+1 contains the space-separated integers A_i and
+        B_i.
+
+SAMPLE INPUT (file landscape.in):
+
+4 100 200 1
+1 4
+2 3
+3 2
+4 0
+
+INPUT DETAILS:
+
+There are 4 flowerbeds in a row, initially with 1, 2, 3, and 4 units of
+dirt. Farmer John wishes to transform them so they have 4, 3, 2, and 0
+units of dirt, respectively.  The costs for adding, removing, and
+transporting dirt are 100, 200, and 1.
+
+OUTPUT FORMAT:
+
+* Line 1: A single integer giving the minimum cost for Farmer John's
+        landscaping project.
+
+SAMPLE OUTPUT (file landscape.out):
+
+210
+
+OUTPUT DETAILS:
+
+One unit of dirt must be removed (from flowerbed #4), at a cost of 200.  The
+remaining dirt can be moved at a cost of 10 (3 units from flowerbed #4 to
+flowerbed #1, 1 unit from flowerbed #3 to flowerbed #2).
+
+Solution Notes: We transform each landscape pattern into an array of length at most 1000 by listing out the locations of the individual units of dirt in the landscape in order. For example, if we have a landscape with heights 3,1,4,1, we would transform this into the sequence 0,0,0,1,2,2,2,2,3 (e.g., there are 4 units of dirt at position 2). Our problem now reduces to something very close to the computation of the "edit distance" between two sequences, which is a classical dynamic programming problem. Our goal is to transform one landscape sequence into another at minimum cost given three possible operations: insertion of a new character (at cost X), deletion of a character (at cost Y), or modification of a character (at cost Z times the magnitude of the change). This can be accomplished in O(N^2) time (where N=1000) using dynamic programming, as shown below. Each subproblem C[i][j] we solve along the way represents the minimum cost of transforming just the first i characters of the source sequence into just the first j characters of the target sequence.
+
+
+#include <stdio.h>
+#define INF 2000000000
+#define MIN(x,y) ((x)<(y) ? (x) : (y))
+#define ABS(x) ((x) > 0 ? (x) : -(x))
+
+int A[1001], B[1001], nA, nB;
+int C[1001][1001], X, Y, Z;
+
+int main(void)
+{
+  int i, j, n;
+  
+  freopen ("landscape.in", "r", stdin);
+  freopen ("landscape.out", "w", stdout);
+
+  scanf ("%d %d %d %d", &n, &X, &Y, &Z);
+  for (i=0; i<n; i++) {
+    scanf ("%d", &j); while (j>0) { A[++nA] = i; j--; } 
+    scanf ("%d", &j); while (j>0) { B[++nB] = i; j--; } 
+  }
+  
+  for (j=0; j<=nB; j++) C[0][j] = i*X;
+  for (i=0; i<=nA; i++) C[i][0] = i*Y;
+
+  for (i=1; i<=nA; i++)
+    for (j=1; j<=nB; j++) {
+      C[i][j] = INF;
+      C[i][j] = MIN(C[i][j], C[i][j-1] + X);
+      C[i][j] = MIN(C[i][j], C[i-1][j] + Y);
+      C[i][j] = MIN(C[i][j], C[i-1][j-1] + Z * ABS(A[i]-B[j]));
+    }
+  
+  printf ("%d\n", C[nA][nB]);
+  return 0;
+}

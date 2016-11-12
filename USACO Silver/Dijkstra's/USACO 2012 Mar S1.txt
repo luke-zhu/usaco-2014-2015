@@ -1,0 +1,119 @@
+Problem 1: Tractor [Brian Dean, 2012]
+
+After a long day of work, Farmer John completely forgot that he left his
+tractor in the middle of the field.  His cows, always up to no good, decide
+to play a prank of Farmer John: they deposit N bales of hay (1 <= N <=
+50,000) at various locations in the field, so that Farmer John cannot
+easily remove the tractor without first removing some of the bales of hay.  
+
+The location of the tractor, as well as the locations of the N hay bales,
+are all points in the 2D plane with integer coordinates in the range
+1..1000.  There is no hay bale located at the initial position of the
+tractor.  When Farmer John drives his tractor, he can only move it in
+directions that are parallel to the coordinate axes (north, south, east,
+and west), and it must move in a sequence of integer amounts.  For example,
+he might move north by 2 units, then east by 3 units.  The tractor cannot
+move onto a point occupied by a hay bale.
+
+Please help Farmer John determine the minimum number of hay bales he needs
+to remove so that he can free his tractor (that is, so he can drive his
+tractor to the origin of the 2D plane).
+
+PROBLEM NAME: tractor
+
+INPUT FORMAT:
+
+* Line 1: Three space-separated integers: N, and the (x,y) starting
+        location of the tractor.
+
+* Lines 2..1+N: Each line contains the (x,y) coordinates of a bale of
+        hay.
+
+SAMPLE INPUT (file tractor.in):
+
+7 6 3
+6 2
+5 2
+4 3
+2 1
+7 3
+5 4
+6 4
+
+INPUT DETAILS:
+
+The tractor starts at (6,3).  There are 7 bales of hay, at positions (6,2),
+(5,2), (4,3), (2,1), (7,3), (5,4), and (6,4).
+
+OUTPUT FORMAT:
+
+* Line 1: The minimum number of bales of hay Farmer John must remove
+        in order to open up a path for his tractor to move to the
+        origin.
+
+SAMPLE OUTPUT (file tractor.out):
+
+1
+
+OUTPUT DETAILS:
+
+Farmer John only needs to remove one bale of hay to free his tractor.
+
+Solution Notes: This is a fairly standard shortest path problem, where we wish to find the shortest path from the initial location of the tractor to the outer boundary of the square with coordinates in the range 1..1000. Squares containing haybales cost 1 unit to cross, and all other squares cost 0 units. We could solve this problem using Dijkstra's algorithm, although the fact that costs are either zero or one allows us to use a slightly different (perhaps slightly simpler) approach using a pair of queues, one containing all the squares we intend to visit that are at distance zero away from our current location, and the other containing a list of all squares we intend to visit that are at distance one away from our current location. We always visit squares from the "zero away" quque, and when this empties out, we refill it with the contents of the "one away" queue. The total running time is therefore linear in the area of the square we are searching.
+
+
+#include <cstdio>
+#include <queue>
+
+using namespace std;
+
+struct Point {
+  int x, y;
+  Point (int _x, int _y) { x = _x; y = _y; }
+  Point (void) { x=y=0; }
+};
+
+queue<Point> zero_away, one_away;
+int A[1002][1002], D[1002][1002];
+
+int relax(int curx, int cury, int x, int y)
+{
+  if (x>=0 && x<=1001 && y>=0 && y<=1001 && (D[x][y]==0 || D[curx][cury]+A[x][y]<D[x][y])) {
+    D[x][y] = D[curx][cury]+A[x][y];
+    if (A[x][y]==0) zero_away.push(Point(x,y));
+    else            one_away.push(Point(x,y));
+  }
+}
+
+int main(void)
+{
+  Point p;
+  int i, n;
+
+  freopen ("tractor.in", "r", stdin);
+  freopen ("tractor.out", "w", stdout);
+  
+  scanf ("%d %d %d", &n, &p.x, &p.y);
+  D[p.x][p.y] = 1;
+  zero_away.push(p);
+  for (i=0; i<n; i++) {
+    scanf ("%d %d", &p.x, &p.y);
+    A[p.x][p.y] = 1;
+  }
+
+  while (!zero_away.empty() || !one_away.empty()) {
+    if (zero_away.empty()) 
+      while (!one_away.empty()) {
+	zero_away.push(one_away.front()); one_away.pop();
+      }
+    p = zero_away.front(); zero_away.pop();
+    relax(p.x,p.y,p.x-1,p.y);
+    relax(p.x,p.y,p.x+1,p.y);
+    relax(p.x,p.y,p.x,p.y-1);
+    relax(p.x,p.y,p.x,p.y+1);
+  }
+
+  printf ("%d\n", D[0][0]-1);
+
+  return 0;
+}

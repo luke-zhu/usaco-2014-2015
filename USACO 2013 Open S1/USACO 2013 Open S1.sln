@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "USACO 2013 Open S1", "USACO 2013 Open S1\USACO 2013 Open S1.vcxproj", "{280854BC-8C1B-462C-B9FC-3F1D5A53A7F8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{280854BC-8C1B-462C-B9FC-3F1D5A53A7F8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{280854BC-8C1B-462C-B9FC-3F1D5A53A7F8}.Debug|Win32.Build.0 = Debug|Win32
+		{280854BC-8C1B-462C-B9FC-3F1D5A53A7F8}.Release|Win32.ActiveCfg = Release|Win32
+		{280854BC-8C1B-462C-B9FC-3F1D5A53A7F8}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

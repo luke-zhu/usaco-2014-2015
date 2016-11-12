@@ -1,0 +1,218 @@
+Problem 1: Unlocking Blocks (Silver) [Brian Dean, 2012]
+
+A little-known fact about cows is that they love puzzles! For Bessie's
+birthday, Farmer John gives her an interesting mechanical puzzle for her to
+solve.  The puzzle consists of three solid objects, each of which is built
+from 1x1 unit squares glued together.  Each of these objects is a
+"connected" shape,  in the sense that you can get from one square on the
+object to any other square on the object by stepping north, south, east, or
+west, through squares on the object.
+
+An object can be moved by repeatedly sliding it either north, south,
+east, or west one unit.  The goal of the puzzle is to move the objects
+so that they are separated -- where their bounding boxes no longer
+share any positive overlap with each-other.  Given the shapes and
+locations of the three objects, your task is to help Bessie decide
+what is the minimum number of individual slides required to separate
+the objects.
+
+
+
+PROBLEM NAME: unlock
+
+INPUT FORMAT:
+
+* Line 1: Three space-separated integers: N1, N2, and N3, describing
+        respectively the number of unit squares making up objects 1,
+        2, and 3.
+
+* Lines 2..1+N1: Each of these lines describes the (x,y) location of
+        the south-west corner of single square that is part of object
+        1.  All coordinates lie in the range 0..9.
+
+* Lines 2+N1..1+N1+N2: Each of these lines describes the (x,y)
+        location of the south-west corner of single square that is
+        part of object 2.  All coordinates lie in the range 0..9.
+
+* Lines 2+N1+N2..1+N1+N2+N3: Each of these lines describes the (x,y)
+        location of the south-west corner of single square that is
+        part of object 3.  All coordinates lie in the range 0..9.
+
+SAMPLE INPUT (file unlock.in):
+
+12 3 5
+0 0
+1 0
+2 0
+3 0
+3 1
+0 1
+0 2
+0 3
+0 4
+1 4
+2 4
+3 4
+2 1
+2 2
+1 2
+2 3
+3 3
+4 3
+4 4
+4 2
+
+INPUT DETAILS:
+
+Object 1 is made from 12 squares, object 2 is made from 3 squares, and
+object 3 is made from 5 squares.  The shapes of the objects are those in
+the figure above.
+
+OUTPUT FORMAT:
+
+* Line 1: The minimum number of moves necessary to separate the three
+objects, or -1 if the objects cannot be separated.
+
+SAMPLE OUTPUT (file unlock.out):
+
+5
+
+OUTPUT DETAILS:
+
+If we slide object 3 to the east by one position, then slide object 2
+north by one position, then slide object 1 west by three positions,
+then the bounding boxes of the three objects will no longer share any
+overlap in common.
+
+Solution Notes: This problem is solved using breadth-first search to find the shortest path from our initial state to a state where all objects have disjoint bounding boxes. Our current state is described by 4 numbers, giving the (x,y) offset of objects 2 and 3 relative to their initial positions. Each move we make, we can change one of these numbers by +1 or -1 to slide either object 2 or 3 (as long as this doesn't create any overlap between the objects), or we can change both x offsets or both y offsets by +1 or -1 to simulate moving object 1 (since moving object 1 is equivalent to keeping object 1 fixed and moving both objects 2 and 3 in the opposite direction).
+
+
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <cstring>
+#include <cstdio>
+#include <set>
+
+using namespace std;
+
+int W[3];
+int H[3];
+
+int sx[3];
+int sy[3];
+
+bool A[3][10][10];
+
+int dx[] = {-1, 1, 0, 0};
+int dy[] = {0, 0, -1, 1};
+
+struct state {
+  state(int d) : d(d) {
+    for(int i = 2; i >= 0; i--) {
+      sx[i] -= sx[0];
+      sy[i] -= sy[0];
+    }
+    memcpy(ssx, sx, sizeof(ssx));
+    memcpy(ssy, sy, sizeof(ssy));
+  }
+
+  state(const state& st) {
+    d = st.d;
+    memcpy(ssx, st.ssx, sizeof(ssx));
+    memcpy(ssy, st.ssy, sizeof(ssy));
+  }
+
+  state& operator=(const state& st) {
+    d = st.d;
+    memcpy(ssx, st.ssx, sizeof(ssx));
+    memcpy(ssy, st.ssy, sizeof(ssy));
+    return *this;
+  }
+
+  void unpack() {
+    memcpy(sx, ssx, sizeof(ssx));
+    memcpy(sy, ssy, sizeof(ssy));
+  }
+
+  bool operator<(const state& st) const {
+    int r = memcmp(ssx, st.ssx, sizeof(ssx));
+    if(!r) r = memcmp(ssy, st.ssy, sizeof(ssy));
+    return r < 0;
+  }
+
+  int d;
+  int ssx[3];
+  int ssy[3];
+};
+
+bool intersect(int i, int j) {
+  return sx[i] < sx[j] + W[j] && sx[j] < sx[i] + W[i] &&
+         sy[i] < sy[j] + H[j] && sy[j] < sy[i] + H[i];
+}
+
+bool check() {
+  for(int i = 0; i < 3; i++) {
+    if(sx[i] < -20 || sx[i] > 20 || sy[i] < -20 || sy[i] > 20) return false;
+    for(int j = i + 1; j < 3; j++) {
+      for(int x = 0; x < W[i]; x++) {
+        for(int y = 0; y < H[i]; y++) {
+          if(!A[i][x][y]) continue;
+          int nx = sx[i] + x - sx[j], ny = sy[i] + y - sy[j];
+          if(nx < 0 || nx >= W[j] || ny < 0 || ny >= H[j] ||
+             !A[j][nx][ny]) continue;
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+int main() {
+  freopen("unlock.in", "r", stdin);
+  freopen("unlock.out", "w", stdout);
+
+  int N[3];
+  cin >> N[0] >> N[1] >> N[2];
+  for(int i = 0; i < 3; i++) {
+    int mx = 10, my = 10;
+    int gx = 0, gy = 0;
+    for(int j = 0; j < N[i]; j++) {
+      int x, y; cin >> x >> y;
+      A[i][x][y] = true;
+      mx = min(mx, x); my = min(my, y);
+      gx = max(gx, x + 1); gy = max(gy, y + 1);
+    }
+    W[i] = gx - mx; H[i] = gy - my;
+    for(int x = mx; x < 10; x++)
+    for(int y = my; y < 10; y++) {
+      A[i][x - mx][y - my] = A[i][x][y];
+      if(mx || my) A[i][x][y] = false;
+    }
+    sx[i] = mx;
+    sy[i] = my;
+  }
+  queue<state> q;
+  set<state> vis;
+  q.push(state(0));
+  while(!q.empty()) {
+    state st = q.front();
+    q.pop();
+    st.unpack();
+    if(!intersect(0, 1) && !intersect(0, 2) && !intersect(1, 2)) {
+      cout << st.d << endl;
+      return 0;
+    }
+    for(int i = 0; i < 3; i++) {
+      for(int j = 0; j < 4; j++) {
+        st.unpack();
+        sx[i] += dx[j];
+        sy[i] += dy[j];
+        state nst = state(st.d + 1);
+        if(vis.insert(nst).second && check()) q.push(nst);
+      }
+    }
+  }
+  cout << -1 << endl;
+}

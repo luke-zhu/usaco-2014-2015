@@ -1,0 +1,82 @@
+Problem 2: Cow IDs [Brian Dean, 2012]
+
+Being a secret computer geek, Farmer John labels all of his cows with
+binary numbers.  However, he is a bit superstitious, and only labels cows
+with binary numbers that have exactly K "1" bits (1 <= K <= 10).  The
+leading bit of each label is always a "1" bit, of course.  FJ assigns
+labels in increasing numeric order, starting from the smallest possible
+valid label -- a K-bit number consisting of all "1" bits.  Unfortunately,
+he loses track of his labeling and needs your help: please determine the
+Nth label he should assign (1 <= N <= 10^7).
+
+PROBLEM NAME: cowids
+
+INPUT FORMAT:
+
+* Line 1: Two space-separated integers, N and K.
+
+SAMPLE INPUT (file cowids.in):
+
+7 3
+
+INPUT DETAILS:
+
+Among all binary numbers containing exactly 3 "1" bits, FJ wants to output
+the 7th in increasing sorted order.
+
+SAMPLE OUTPUT (file cowids.out):
+
+10110
+
+Solution Notes: This problem can be solved by dynamic programming. We treat inputs with K=1 as a special case, since this involves just printing a one followed by N-1 zeros. For K at least 2, a quick back-of-the-envelope calculation shows us that the total number of digits in the answer will be at most 5000. For the two-dimensional array A[0..10][0..5000], we let A[i][j] denote the number of j-digit binary numbers (including those that start with leading zeros) with exactly i 1-bits. We can fill in this table by setting A[i][j] = A[i-1][j-1] + A[i][j-1], since a j-digit number with i 1-bits can be obtained either by appending a 0 bit to a (j-1)-digit number with i 1-bits, or by appending a 1 bit to a (j-1)-digit number with (i-1) 1-bits. Once we have filled in the table, the appropriate "traceback path" from A[K][5000] gives us the binary number we seek (taking care not to print leading zeros).
+
+
+#include <stdio.h>
+#define M 5000
+
+int A[11][M+1];
+int leading_zeros = 1;
+
+void print_sol(int n,int k,int m)
+{
+  if (k==0 && m==1) return;
+  if (k==0 || A[k][m-1] >= n) {
+    if (!leading_zeros) printf ("0");
+    print_sol(n,k,m-1);
+  } else {
+    leading_zeros = 0;
+    printf ("1");
+    print_sol(n-A[k][m-1],k-1,m-1);
+  }
+}
+
+int main(void)
+{
+  int i,j,N,K;
+
+  freopen ("cowids.in", "r", stdin);
+  freopen ("cowids.out", "w", stdout);
+
+  scanf ("%d %d", &N, &K);
+
+  if (K==1) {
+    printf ("1");
+    for (i=0; i<N-1; i++) printf ("0");
+    printf ("\n");
+    return 0;
+  }
+
+  A[0][1] = 1;
+  for (j=1; j<=M; j++) {
+    for (i=0; i<=10; i++) {
+      if (i==0) A[i][j] = 1;
+      else A[i][j] = A[i-1][j-1] + A[i][j-1];
+      if (A[i][j] > 10000000) A[i][j] = 10000000; /* avoid overflow */
+    }
+  }
+
+  print_sol(N,K,M);
+  printf ("\n");
+
+  return 0;
+}

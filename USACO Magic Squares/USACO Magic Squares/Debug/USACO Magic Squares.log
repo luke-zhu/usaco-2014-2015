@@ -1,0 +1,8 @@
+﻿Build started 12/8/2015 11:08:32 PM.
+     1>Project "c:\Users\Luke\documents\visual studio 2013\Projects\USACO Magic Squares\USACO Magic Squares\USACO Magic Squares.vcxproj" on node 2 (Build target(s)).
+     1>C:\Program Files (x86)\MSBuild\Microsoft\VisualStudio\v12.0\CodeAnalysis\Microsoft.CodeAnalysis.targets(214,5): error MSB4175: The task factory "CodeTaskFactory" could not be loaded from the assembly "C:\Program Files (x86)\MSBuild\12.0\bin\Microsoft.Build.Tasks.v12.0.dll". The process cannot access the file 'C:\Users\Luke\AppData\Local\Temp\bpbjswot.dll' because it is being used by another process.
+     1>Done Building Project "c:\Users\Luke\documents\visual studio 2013\Projects\USACO Magic Squares\USACO Magic Squares\USACO Magic Squares.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.74
